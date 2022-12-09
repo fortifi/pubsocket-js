@@ -12,20 +12,22 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
   private _lastTime: number = 0;
   protected _messages: Message[] = [];
 
+  private _tryConnect = debounce(() => this.open(), 100, true);
+
   public scrolled: boolean = false;
+
   @property({attribute: 'new-message', reflect: true, type: Boolean})
   public newMessage: boolean = false;
   @property({attribute: 'connected', reflect: true, type: Boolean})
   public connected: boolean = false;
 
+  @property({attribute: 'hide-send-panel', reflect: true, type: Boolean})
+  public hideSendPanel: boolean = false;
+
   @property({attribute: 'chat-fid'})
   public chatFid: string = '';
   @property({attribute: 'chat-ref'})
   public chatRef: string = '';
-
-  private _tryConnect = debounce(() => {
-    this.open();
-  }, 100, true);
 
   static styles = css`
     :host {
@@ -115,10 +117,11 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
             </li>`
         )}
       </ul>
-      <div id="send-panel">
-        <input id="msg" @keypress=${this._inputKeyDown}>
-        <button @click="${this._send}">Send</button>
-      </div>
+      ${this.hideSendPanel ? null : html`
+        <div id="send-panel">
+          <input id="msg" @keypress=${this._inputKeyDown}>
+          <button @click="${this._send}">Send</button>
+        </div>`}
     `;
   }
 
@@ -136,7 +139,6 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
     super.disconnectedCallback();
     this.removeEventListener('scroll', this._scrollFn)
   }
-
 
   protected updated(_changedProperties: PropertyValues) {
     super.updated(_changedProperties);
@@ -240,13 +242,6 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
         setTimeout(self._tryConnect, 2000);
       }
     };
-    // s.onerror = function (e) {
-    //   self._socket = null;
-    //   // if (e) {
-    //   //   return
-    //   // }
-    //   setTimeout(self._tryConnect, 2000);
-    // }
     s.onmessage = function (evt) {
       const msg: Message = JSON.parse(evt.data);
       let updated = false;
