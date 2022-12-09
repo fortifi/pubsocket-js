@@ -1,0 +1,53 @@
+{
+  "root": true,
+  "extends": [
+    "eslint:recommended"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "plugins": [
+    "@typescript-eslint"
+  ],
+  "overrides": [
+    {
+      // Your TypeScript files extension
+      "files": [
+        "*.ts",
+        "*.tsx"
+      ],
+      // As mentioned in the comments, you should extend TypeScript plugins here,
+      // instead of extending them outside the `overrides`.
+      // If you don't want to extend any rules, you don't need an `extends` attribute.
+      "extends": [
+        "plugin:@typescript-eslint/recommended"
+        //"plugin:@typescript-eslint/recommended-requiring-type-checking"
+      ],
+      "parserOptions": {
+        "project": [
+          "./tsconfig.json"
+        ]
+        // Specify it only for TypeScript files
+      },
+      "rules": {
+        "@typescript-eslint/no-inferrable-types": "off",
+        "@typescript-eslint/strict-boolean-expressions": [
+          "error",
+          {
+            "allowString": false,
+            "allowNumber": false
+          }
+        ]
+      }
+    }
+  ],
+  "rules": {
+    "no-undefined": "warn"
+  },
+  "ignorePatterns": [
+    "babel.config.js",
+    "karma.conf.js",
+    "rollup.config.js",
+    "**/*.scss",
+    "**/*.css",
+    "**/*.html"
+  ]
+}

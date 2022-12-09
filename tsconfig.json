@@ -1,0 +1,40 @@
+{
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false,
+    "types": [
+      "node",
+      "mocha",
+      "chai",
+      "sinon"
+    ],
+    "moduleResolution": "node",
+    "module": "esnext",
+    "allowJs": true,
+    "target": "es6",
+    "sourceMap": false,
+    "declaration": false,
+    "inlineSources": false,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strictNullChecks": true,
+    "plugins": [
+      {
+        "name": "ts-lit-plugin",
+        "strict": true
+      }
+    ],
+    "typeRoots": [
+      "node_modules/@types",
+      "./src/types",
+      "./src/types"
+    ]
+  },
+  "include": [
+    "./src/"
+  ],
+  "exclude": [
+    "./node_modules/",
+    "./builds/"
+  ]
+}

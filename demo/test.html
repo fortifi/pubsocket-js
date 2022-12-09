@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, shrink-to-fit=no">
+  <style>
+    html, body {
+      height: 100%;
+      max-height: 100%;
+      max-width: 100%;
+      margin: 0;
+      padding: 0;
+
+      font-family: sans-serif;
+    }
+
+    #wrap {
+      max-height: 50%;
+      width: 400px;
+      position: fixed;
+      display: flex;
+      align-content: flex-end;
+      bottom: 10px;
+      right: 10px;
+      border: 1px solid black;
+    }
+
+    pub-socket {
+      background: grey;
+    }
+
+    pub-socket[new-message] {
+      background: rgba(112, 161, 112, 0.2)
+    }
+
+    pub-socket[connected] {
+      background: white;
+    }
+  </style>
+  <script src="../builds/local/pubsocket.min.js"></script>
+</head>
+<body>
+
+<div id="wrap">
+  <pub-socket chat-fid="FID:INT:1670595842:IJd5Lb601tZVM"
+              chat-ref="INT-rmmo02-IJd5Lb601tZVM-NZETnXN3Py9PQvFTHbAO4vCm7hObAxQP"></pub-socket>
+</div>
+</body>
+</html>
