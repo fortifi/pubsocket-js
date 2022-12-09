@@ -6,7 +6,7 @@ import {debounce} from 'debounce';
 const ulid = factory(detectPrng(true));
 
 @customElement('pub-socket')
-class PubSocket extends LitElement // eslint-disable-line @typescript-eslint/no-unused-vars
+export class PubSocket extends LitElement // eslint-disable-line @typescript-eslint/no-unused-vars
 {
   private _socket: WebSocket | null;
   private _lastTime: number = 0;
