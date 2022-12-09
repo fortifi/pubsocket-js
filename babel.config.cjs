@@ -1,5 +1,3 @@
-const ENV = require('./build.config.cjs').ENV;
-
 module.exports = {
   'assumptions': {
     'setPublicClassFields': true,
@@ -7,13 +5,11 @@ module.exports = {
   exclude: [
     'node_modules/core-js/**',
   ],
-  sourceMaps: ENV === 'prod' ? false : 'inline',
   plugins: [
     '@babel/plugin-proposal-object-rest-spread',
     ['@babel/plugin-transform-typescript', {'allowDeclareFields': true}],
     ['@babel/plugin-proposal-decorators', {'decoratorsBeforeExport': true}],
     ['@babel/plugin-proposal-class-properties'],
-    ...(ENV === 'test' ? ['istanbul'] : []),
   ],
   presets: [
     // Enabling Babel to understand TypeScript
@@ -23,7 +19,7 @@ module.exports = {
       '@babel/preset-env',
       {
         // Specifying which browser versions you want to transpile down to
-        corejs: '3.21.0',
+        corejs: '3.26.1',
         useBuiltIns: 'usage',
         bugfixes: true,
         /**
