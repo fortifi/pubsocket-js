@@ -24,6 +24,9 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
   @property({attribute: 'hide-send-panel', reflect: true, type: Boolean})
   public hideSendPanel: boolean = false;
 
+  @property({attribute: 'socket-host', reflect: true})
+  public socketHost: string = 'wss://socket.fortifi.io';
+
   @property({attribute: 'chat-fid'})
   public chatFid: string = '';
   @property({attribute: 'chat-ref'})
@@ -229,7 +232,7 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
 
     const self = this; // eslint-disable-line @typescript-eslint/no-this-alias
 
-    const s = new WebSocket(["ws://chat.fortifi.me:8012", this.chatFid, this.chatRef, this._lastTime].join('/'));
+    const s = new WebSocket([this.socketHost, this.chatFid, this.chatRef, this._lastTime].join('/'));
     s.onopen = function () {
       self.connected = true;
     }
