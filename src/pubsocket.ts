@@ -24,7 +24,7 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
   @property({attribute: 'hide-send-panel', reflect: true, type: Boolean})
   public hideSendPanel: boolean = false;
 
-  @property({attribute: 'socket-host', reflect: true})
+  @property({attribute: 'socket-host'})
   public socketHost: string = 'wss://socket.fortifi.io';
 
   @property({attribute: 'chat-fid'})
@@ -61,6 +61,16 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
       width: fit-content;
       flex-wrap: wrap;
       align-self: flex-start;
+    }
+
+    li[action-type="connected.agent"] {
+      background: transparent;
+      border: none;
+      align-self: center;
+    }
+
+    li[action-type="connected.agent"] > span {
+      display: none
     }
 
     li[customer] {
@@ -113,7 +123,7 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
       <ul>
         ${this._messages.map((msg) =>
           html`
-            <li ?customer=${msg.customerInitiated} ?undelivered=${msg.undelivered}>
+            <li ?customer=${msg.customerInitiated} ?undelivered=${msg.undelivered} action-type="${msg.actionType}">
               <span class="int-msg-who">${msg.customerInitiated === true ? 'Customer' : 'Agent'}</span>
               ${msg.content}
               <span class="int-msg-time">${this._getFormattedTime(msg.time)}</span>
