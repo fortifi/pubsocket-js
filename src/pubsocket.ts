@@ -206,6 +206,7 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
     if (this.scrolled) {
       this.newMessage = true;
     }
+    this.dispatchEvent(new CustomEvent('message', {detail: msg}))
   }
 
   _scrollFn() {
