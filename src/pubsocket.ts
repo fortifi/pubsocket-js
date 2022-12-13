@@ -122,7 +122,7 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
   protected render(): unknown {
     return html`
       <ul>
-        ${this._messages.map(this.renderMessage)}
+        ${this._messages.map(this.renderMessage.bind(this))}
       </ul>
       ${this.hideSendPanel ? null : html`
         <div id="send-panel">
