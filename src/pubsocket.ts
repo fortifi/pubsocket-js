@@ -124,9 +124,13 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
         ${this._messages.map((msg) =>
           html`
             <li ?customer=${msg.customerInitiated} ?undelivered=${msg.undelivered} action-type="${msg.actionType}">
-              <span class="int-msg-who">${msg.customerInitiated === true ? 'Customer' : 'Agent'}</span>
+              <span class="int-msg-who">
+                ${msg.author !== "" ? msg.author : (msg.customerInitiated === true ? 'Customer' : 'Agent')}
+              </span>
               ${msg.content}
-              <span class="int-msg-time">${this._getFormattedTime(msg.time)}</span>
+              <span class="int-msg-time">
+                ${this._getFormattedTime(msg.time)}
+              </span>
             </li>`
         )}
       </ul>
