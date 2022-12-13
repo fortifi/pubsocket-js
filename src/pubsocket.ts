@@ -44,10 +44,11 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
     }
 
     ul {
-      margin: 0;
       padding: 0;
       display: flex;
       flex-direction: column;
+      width: var(--message-container-width, auto);
+      margin: var(--message-container-margin, 0);
     }
 
     li {
@@ -121,25 +122,28 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
   protected render(): unknown {
     return html`
       <ul>
-        ${this._messages.map((msg) =>
-          html`
-            <li ?customer=${msg.customerInitiated} ?undelivered=${msg.undelivered} action-type="${msg.actionType}">
-              <span class="int-msg-who">
-                ${msg.author !== "" ? msg.author : (msg.customerInitiated === true ? 'Customer' : 'Agent')}
-              </span>
-              ${msg.content}
-              <span class="int-msg-time">
-                ${this._getFormattedTime(msg.time)}
-              </span>
-            </li>`
-        )}
+        ${this._messages.map(this.renderMessage)}
       </ul>
       ${this.hideSendPanel ? null : html`
         <div id="send-panel">
           <input id="msg" @keypress=${this._inputKeyDown}>
           <button @click="${this._send}">Send</button>
-        </div>`}
+        </div>`
+      }
     `;
+  }
+
+  protected renderMessage(msg: Message): unknown {
+    return html`
+      <li ?customer=${msg.customerInitiated} ?undelivered=${msg.undelivered} action-type="${msg.actionType}">
+        <span class="int-msg-who">
+          ${msg.author !== "" ? msg.author : (msg.customerInitiated === true ? 'Customer' : 'Agent')}
+        </span>
+        ${msg.content}
+        <span class="int-msg-time">
+          ${this._getFormattedTime(msg.time)}
+        </span>
+      </li>`
   }
 
   _getFormattedTime(timestamp: number) {
