@@ -7,7 +7,6 @@
     "build": "rollup -c rollup.config.js"
   },
   "dependencies": {
-    "debounce": "^1.2.1",
     "lit": "^2.5.0",
     "ulid": "^2.3.0"
   },

@@ -1,7 +1,6 @@
 import {css, html, LitElement, PropertyValues} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 import {detectPrng, factory} from "ulid";
-import {debounce} from 'debounce';
 
 const ulid = factory(detectPrng(true));
 
@@ -9,10 +8,9 @@ const ulid = factory(detectPrng(true));
 export class PubSocket extends LitElement // eslint-disable-line @typescript-eslint/no-unused-vars
 {
   private _socket: WebSocket | null;
-  private _lastTime: number = 0;
+  private _lastMessageTime: number = 0;
+  private _failureTime: number = 0;
   protected _messages: Message[] = [];
-
-  private _tryConnect = debounce(() => this.open(), 100, true);
 
   public scrolled: boolean = false;
 
@@ -20,9 +18,16 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
   public newMessage: boolean = false;
   @property({attribute: 'connected', reflect: true, type: Boolean})
   public connected: boolean = false;
+  @property({attribute: 'connection-failed', reflect: true, type: Boolean})
+  public connectionFailed: boolean = false;
 
-  @property({attribute: 'hide-send-panel', reflect: true, type: Boolean})
+  @property({attribute: 'hide-send-panel', type: Boolean})
   public hideSendPanel: boolean = false;
+
+  @property({attribute: 'retry-delay', type: Number})
+  public retryDelay: number = 2;
+  @property({attribute: 'retry-timeout', type: Number})
+  public retryTimeout: number = 5;
 
   @property({attribute: 'socket-host'})
   public socketHost: string = 'wss://socket.fortifi.io';
@@ -166,10 +171,11 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
 
     if (_changedProperties.has('chatFid') || _changedProperties.has('chatRef')) {
       this.reset()
-    } else {
-      this._tryConnect()
-      this.scrollToEnd();
+      if (this.chatFid !== '' && this.chatRef !== '') {
+        this.open();
+      }
     }
+    this.scrollToEnd();
   }
 
   _inputKeyDown(evt) {
@@ -209,7 +215,7 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
 
   _pushMessage(msg: Message) {
     this._messages.push(msg);
-    this._lastTime = msg.time;
+    this._lastMessageTime = msg.time;
     this.requestUpdate();
     if (this.scrolled) {
       this.newMessage = true;
@@ -236,12 +242,18 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
       this.close();
     }
     this._socket = null;
-    this._lastTime = 0;
+    this._lastMessageTime = 0;
     this._messages = [];
+    this._failureTime = 0;
+    this.connectionFailed = false;
+    this.scrolled = false;
     this.requestUpdate();
   }
 
   open() {
+    if (this.connected) {
+      return true;
+    }
     if (this._socket) {
       return true;
     }
@@ -249,19 +261,36 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
       return false;
     }
 
+    if (this.connectionFailed) {
+      // already marked as failed, take this open as the start of a new attempt run
+      this.reset();
+    }
+
     const self = this; // eslint-disable-line @typescript-eslint/no-this-alias
 
-    const s = new WebSocket([this.socketHost, this.chatFid, this.chatRef, this._lastTime].join('/'));
+    const s = new WebSocket([this.socketHost, this.chatFid, this.chatRef, this._lastMessageTime].join('/'));
     s.onopen = function () {
       self.connected = true;
+      self.connectionFailed = false;
     }
     s.onclose = function (e) {
       self.connected = false;
       if (e.wasClean) {
         self.reset();
       } else {
+        // set as failed
         self._socket = null;
-        setTimeout(self._tryConnect, 2000);
+        if (self._failureTime <= 0) {
+          self._failureTime = (new Date()).getTime();
+        }
+        // should we retry, or fail?
+        if ((new Date()).getTime() < self._failureTime + (self.retryTimeout * 1000)) {
+          // retry
+          setTimeout(self.open.bind(self), self.retryDelay * 1000);
+        } else {
+          self.connectionFailed = true;
+          s.close()
+        }
       }
     };
     s.onmessage = function (evt) {
