@@ -290,7 +290,7 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
           setTimeout(self.open.bind(self), self.retryDelay * 1000);
         } else {
           self.connectionFailed = true;
-          s.close()
+          s.close(e.code, e.reason);
         }
       }
     };
