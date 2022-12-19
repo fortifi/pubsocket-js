@@ -272,6 +272,7 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
     s.onopen = function () {
       self.connected = true;
       self.connectionFailed = false;
+      self._failureTime = 0;
     }
     s.onclose = function (e) {
       self.connected = false;
