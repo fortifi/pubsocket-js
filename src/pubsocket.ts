@@ -138,7 +138,22 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
     `;
   }
 
+  protected displayMessage(msg: Message):boolean{
+    switch(msg.actionType){
+      case "":
+      case "connected.agent":
+      case "transfer":
+      case "ended":
+      case "error":
+        return true;
+    }
+    return false;
+  }
+
   protected renderMessage(msg: Message): unknown {
+    if(!this.displayMessage(msg)){
+      return html``;
+    }
     return html`
       <li ?customer=${msg.customerInitiated} ?undelivered=${msg.undelivered} action-type="${msg.actionType}">
         <span class="int-msg-who">

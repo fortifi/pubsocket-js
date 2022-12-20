@@ -1,5 +1,5 @@
 {
-  "name": "@chargehive/paymentauth",
+  "name": "@fortifi/pubsocket-js",
   "private": true,
   "license": "MIT",
   "main": "src/pubsocket.ts",
