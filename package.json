@@ -3,6 +3,7 @@
   "private": true,
   "license": "MIT",
   "main": "src/pubsocket.ts",
+  "version": "1.0.0",
   "scripts": {
     "build": "rollup -c rollup.config.js"
   },
