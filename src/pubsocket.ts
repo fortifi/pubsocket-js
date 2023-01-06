@@ -169,19 +169,17 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
   }
 
   _prepareMessageContent(content: string) {
+
     content = content
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
 
-    content = checkText(content)
-
-    content = unsafeHTML(content
-      .replace(/((http:|https:)[^\s]+[\w])/g, '<a href="$1" target="_blank">$1</a>')) as string;
-
     content = content.replace(/(\r\n|\r|\n)/g, '<br>');
-
+    content = content.replace(/((http:|https:)[^\S]+[\W])/g, '<a href="$1" target="_blank">$1</a>');
+    content = checkText(content)
+    content = unsafeHTML(content) as string;
     return content;
   }
 
