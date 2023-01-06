@@ -1,6 +1,8 @@
 import {css, html, LitElement, PropertyValues} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 import {detectPrng, factory} from "ulid";
+import {unsafeHTML} from 'lit/directives/unsafe-html.js'
+import {checkText} from 'smile2emoji'
 
 const ulid = factory(detectPrng(true));
 
@@ -138,8 +140,8 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
     `;
   }
 
-  protected displayMessage(msg: Message):boolean{
-    switch(msg.actionType){
+  protected displayMessage(msg: Message): boolean {
+    switch (msg.actionType) {
       case "":
       case "connected.agent":
       case "transfer":
@@ -151,7 +153,7 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
   }
 
   protected renderMessage(msg: Message): unknown {
-    if(!this.displayMessage(msg)){
+    if (!this.displayMessage(msg)) {
       return html``;
     }
     return html`
@@ -159,11 +161,26 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
         <span class="int-msg-who">
           ${msg.author !== "" ? msg.author : (msg.customerInitiated === true ? 'Customer' : 'Agent')}
         </span>
-        ${msg.content}
+        ${this._prepareMessageContent(msg.content)}
         <span class="int-msg-time">
           ${this._getFormattedTime(msg.time)}
         </span>
       </li>`
+  }
+
+  _prepareMessageContent(content: string) {
+
+    content = content
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+
+    content = content.replace(/(\r\n|\r|\n)/g, '<br>');
+    content = content.replace(/((http:|https:)[^\S]+[\W])/g, '<a href="$1" target="_blank">$1</a>');
+    content = checkText(content)
+    content = unsafeHTML(content) as string;
+    return content;
   }
 
   _getFormattedTime(timestamp: number) {
