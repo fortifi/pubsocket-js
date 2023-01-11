@@ -9,7 +9,6 @@
   },
   "dependencies": {
     "lit": "^2.5.0",
-    "smile2emoji": "^3.5.0",
     "ulid": "^2.3.0"
   },
   "devDependencies": {

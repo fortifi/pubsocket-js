@@ -301,11 +301,13 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
     const self = this; // eslint-disable-line @typescript-eslint/no-this-alias
 
     const s = new WebSocket([this.socketHost, this.chatFid, this.chatRef, this._lastMessageTime].join('/'));
+
     s.onopen = function () {
       self.connected = true;
       self.connectionFailed = false;
       self._failureTime = 0;
     }
+
     s.onclose = function (e) {
       self.connected = false;
       if (e.wasClean) {
@@ -326,6 +328,7 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
         }
       }
     };
+
     s.onmessage = function (evt) {
       const msg: Message = JSON.parse(evt.data);
       let updated = false;
@@ -339,14 +342,17 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
           }
         });
       }
+
       if (!updated) {
         self._pushMessage(msg);
       }
 
       self.requestUpdate();
-      self.scrollToEnd();
+      self.scrollToEnd(true);
     };
+
     this._socket = s;
+
     return true;
   }
 
