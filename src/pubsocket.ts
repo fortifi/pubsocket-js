@@ -278,6 +278,10 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
       this._agentTyping = false
     }
 
+    if (msg.actionType === 'transfer') {
+      this._agentTyping = false;
+    }
+
     if (msg.actionType === 'agent.typing') {
       this._agentTyping = true;
       this.scrollToEnd();
