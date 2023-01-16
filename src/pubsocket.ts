@@ -127,7 +127,6 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
     }
 
     #agent-typing {
-      max-width: 460px;
       width: 100%;
       margin: 0 auto;
       font-size: 13px;
