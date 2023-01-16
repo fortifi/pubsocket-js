@@ -13,6 +13,7 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
   private _lastMessageTime: number = 0;
   private _failureTime: number = 0;
   protected _messages: Message[] = [];
+  protected _agentTyping = false;
 
   public scrolled: boolean = false;
 
@@ -124,6 +125,29 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
       width: 100%;
       background: white;
     }
+
+    #agent-typing {
+      max-width: 460px;
+      width: 100%;
+      margin: 0 auto;
+      font-size: 13px;
+    }
+
+    #agent-typing:after {
+      overflow: hidden;
+      display: inline-block;
+      vertical-align: bottom;
+      -webkit-animation: ellipsis steps(4, end) 1500ms infinite;
+      animation: ellipsis steps(4, end) 1500ms infinite;
+      content: "\\2026";
+      width: 0;
+    }
+
+    @keyframes ellipsis {
+      to {
+        width: 10px;
+      }
+    }
   `;
 
   protected render(): unknown {
@@ -131,6 +155,8 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
       <ul>
         ${this._messages.map(this.renderMessage.bind(this))}
       </ul>
+      ${this._agentTyping ? html`
+        <div id="agent-typing">Agent Typing</div>` : null}
       ${this.hideSendPanel ? null : html`
         <div id="send-panel">
           <input id="msg" @keypress=${this._inputKeyDown}>
@@ -248,6 +274,21 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
   _pushMessage(msg: Message) {
     this._messages.push(msg);
     this._lastMessageTime = msg.time;
+
+    if (msg.actionType === "" && msg.content.length > 0) {
+      this._agentTyping = false
+    }
+
+    if (msg.actionType === 'agent.typing') {
+      this._agentTyping = true;
+      this.scrollToEnd();
+
+      setTimeout(() => {
+        this._agentTyping = false
+      }, 30000)
+      return;
+    }
+
     this.requestUpdate();
     if (this.scrolled) {
       this.newMessage = true;
