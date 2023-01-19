@@ -72,13 +72,15 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
       align-self: flex-start;
     }
 
-    li[action-type="connected.agent"] {
+    li[action-type="connected.agent"],
+    li[action-type="attachment.added"] {
       background: transparent;
       border: none;
       align-self: center;
     }
 
-    li[action-type="connected.agent"] > span {
+    li[action-type="connected.agent"] > span,
+    li[action-type="attachment.added"] > span {
       display: none
     }
 
@@ -169,6 +171,7 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
     switch (msg.actionType) {
       case "":
       case "connected.agent":
+      case "attachment.added":
       case "transfer":
       case "ended":
       case "error":
