@@ -177,7 +177,6 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
   `;
 
   protected render(): unknown {
-    this.canReply = true;
     return html`
       <ul>
         ${this._messages.map(this.renderMessage.bind(this))}
@@ -216,8 +215,6 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
       return this._htmlMultiAnswer(index, msg);
     }
 
-    this.dispatchEvent(new CustomEvent('can.reply', {detail: this.canReply}))
-
     return html`
       <li ?customer=${msg.customerInitiated} ?undelivered=${msg.undelivered} action-type="${msg.actionType}">
         ${this._htmlAuthor(msg.author, msg.customerInitiated)}
@@ -243,10 +240,13 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
 
     let answers = html``;
 
+    this.canReply = true;
     if (index === this._messages.length - 1) {
       answers = this._htmlAnswers(payload.answers)
       this.canReply = false;
     }
+
+    this.dispatchEvent(new CustomEvent('can.reply', {detail: this.canReply}))
 
     return html`
       <li ?customer=${false} ?undelivered="${msg.undelivered}" action-type="${msg.actionType}">
