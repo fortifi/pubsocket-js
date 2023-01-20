@@ -144,6 +144,27 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
       width: 0;
     }
 
+    .int-msg-answers {
+      align-self: flex-end;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .int-msg-answer {
+      border: 1px solid var(--customer-multi-color, #0e9dde);
+      color: var(--customer-multi-color, #0e9dde);
+      padding: 6px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+
+    .int-msg-answer:hover {
+      background-color: var(--customer-multi-color, #0e9dde);
+      color: var(--customer-multi-hover-color, #fff)
+    }
+
     @keyframes ellipsis {
       to {
         width: 10px;
@@ -172,6 +193,7 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
       case "":
       case "connected.agent":
       case "attachment.added":
+      case "multi.answer":
       case "transfer":
       case "ended":
       case "error":
@@ -180,10 +202,41 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
     return false;
   }
 
-  protected renderMessage(msg: Message): unknown {
+  protected renderMessage(msg: Message, index: number): unknown {
     if (!this.displayMessage(msg)) {
       return html``;
     }
+
+    if (msg.actionType === 'multi.answer') {
+      const payload = JSON.parse(msg.content);
+
+      let answers = html`
+        <li class="int-msg-answers">
+          ${payload.answers.map(answer => (
+        html`
+              <span class="int-msg-answer" @click=${e => this.send(answer)}>
+                ${this._prepareMessageContent(answer)}
+              </span>`
+      ))}
+          </div>`;
+
+      let canReply = false;
+
+      if (index !== this._messages.length - 1) {
+        answers = html``;
+        canReply = true;
+      }
+
+      this.dispatchEvent(new CustomEvent('can.reply', {detail: canReply}))
+
+      return html`
+        <li ?customer=${false} ?undelivered="${msg.undelivered}" action-type="${msg.actionType}">
+          <span class="int-msg">${this._prepareMessageContent(payload.message)}</span>
+        </li>
+        ${answers}
+      `
+    }
+
     return html`
       <li ?customer=${msg.customerInitiated} ?undelivered=${msg.undelivered} action-type="${msg.actionType}">
         <span class="int-msg-who">
@@ -277,11 +330,7 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
     this._messages.push(msg);
     this._lastMessageTime = msg.time;
 
-    if (msg.actionType === "" && msg.content.length > 0) {
-      this._agentTyping = false
-    }
-
-    if (msg.actionType === 'transfer') {
+    if ((msg.actionType === "" && msg.content.length > 0) || msg.actionType === 'transfer' || msg.actionType === 'multi.answer') {
       this._agentTyping = false;
     }
 
@@ -390,7 +439,7 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
         });
       }
 
-      if (!updated) {
+      if (!updated && msg.actionType !== 'hc') {
         self._pushMessage(msg);
       }
 
