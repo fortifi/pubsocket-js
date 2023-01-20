@@ -213,12 +213,12 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
       let answers = html`
         <li class="int-msg-answers">
           ${payload.answers.map(answer => (
-        html`
+            html`
               <span class="int-msg-answer" @click=${e => this.send(answer)}>
                 ${this._prepareMessageContent(answer)}
               </span>`
-      ))}
-          </div>`;
+          ))}
+        </li>`;
 
       let canReply = false;
 
