@@ -40,6 +40,8 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
   @property({attribute: 'chat-ref'})
   public chatRef: string = '';
 
+  public canReply: boolean = true;
+
   static styles = css`
     :host {
       --customer-background-color: #ccf5db;
@@ -144,6 +146,29 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
       width: 0;
     }
 
+    .int-msg-answers {
+      align-self: flex-end;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 12px;
+      background: none;
+      border: none;
+    }
+
+    .int-msg-answer {
+      border: 1px solid var(--customer-multi-color, #0e9dde);
+      color: var(--customer-multi-color, #0e9dde);
+      padding: 6px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+
+    .int-msg-answer:hover {
+      background-color: var(--customer-multi-color, #0e9dde);
+      color: var(--customer-multi-hover-color, #fff)
+    }
+
     @keyframes ellipsis {
       to {
         width: 10px;
@@ -160,7 +185,7 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
         <div id="agent-typing">Agent Typing</div>` : null}
       ${this.hideSendPanel ? null : html`
         <div id="send-panel">
-          <input id="msg" @keypress=${this._inputKeyDown}>
+          <input id="msg" @keypress=${this._inputKeyDown} ?disabled=${!this.canReply}>
           <button @click="${this._send}">Send</button>
         </div>`
       }
@@ -172,6 +197,7 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
       case "":
       case "connected.agent":
       case "attachment.added":
+      case "multi.answer":
       case "transfer":
       case "ended":
       case "error":
@@ -180,20 +206,66 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
     return false;
   }
 
-  protected renderMessage(msg: Message): unknown {
+  protected renderMessage(msg: Message, index: number): unknown {
     if (!this.displayMessage(msg)) {
       return html``;
     }
+
+    if (msg.actionType === 'multi.answer') {
+      return this._htmlMultiAnswer(index, msg);
+    }
+
     return html`
       <li ?customer=${msg.customerInitiated} ?undelivered=${msg.undelivered} action-type="${msg.actionType}">
-        <span class="int-msg-who">
-          ${msg.author !== "" ? msg.author : (msg.customerInitiated === true ? 'Customer' : 'Agent')}
-        </span>
+        ${this._htmlAuthor(msg.author, msg.customerInitiated)}
         ${this._prepareMessageContent(msg.content)}
-        <span class="int-msg-time">
-          ${this._getFormattedTime(msg.time)}
-        </span>
+        ${this._htmlTime(msg.time)}
       </li>`
+  }
+
+  _htmlTime(time: number) {
+    return html`<span class="int-msg-time">
+          ${this._getFormattedTime(time)}
+        </span>`
+  }
+
+  _htmlAuthor(author: string, customerInitiated: boolean) {
+    return html`<span class="int-msg-who">
+          ${author !== "" ? author : (customerInitiated ? 'Customer' : 'Agent')}
+        </span>`
+  }
+
+  _htmlMultiAnswer(index: number, msg: Message) {
+    const payload = JSON.parse(msg.content);
+
+    let answers = html``;
+
+    this.canReply = true;
+    if (index === this._messages.length - 1) {
+      answers = this._htmlAnswers(payload.answers)
+      this.canReply = false;
+    }
+
+    this.dispatchEvent(new CustomEvent('can.reply', {detail: this.canReply}))
+
+    return html`
+      <li ?customer=${false} ?undelivered="${msg.undelivered}" action-type="${msg.actionType}">
+        ${this._htmlAuthor(msg.author, msg.customerInitiated)}
+        ${this._prepareMessageContent(payload.message)}
+        ${this._htmlTime(msg.time)}
+      </li>
+      ${answers}`
+  }
+
+  _htmlAnswers(answers: Array<string>) {
+    return html`
+      <li class="int-msg-answers">
+        ${answers.map(answer => (html`
+            <span class="int-msg-answer" @click=${() => this.send(answer)}>
+              ${this._prepareMessageContent(answer)}
+            </span>`
+        ))}
+      </li>`;
   }
 
   _prepareMessageContent(content: string) {
@@ -247,7 +319,7 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
 
   _send() {
     const msg: HTMLInputElement | null = this.renderRoot.querySelector('#msg')
-    if (msg) {
+    if (msg && this.canReply) {
       this.send(msg.value);
       msg.value = '';
       this.scrollToEnd(true)
@@ -277,11 +349,7 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
     this._messages.push(msg);
     this._lastMessageTime = msg.time;
 
-    if (msg.actionType === "" && msg.content.length > 0) {
-      this._agentTyping = false
-    }
-
-    if (msg.actionType === 'transfer') {
+    if ((msg.actionType === "" && msg.content.length > 0) || msg.actionType === 'transfer' || msg.actionType === 'multi.answer') {
       this._agentTyping = false;
     }
 
@@ -390,7 +458,7 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
         });
       }
 
-      if (!updated) {
+      if (!updated && msg.actionType !== 'hc') {
         self._pushMessage(msg);
       }
 

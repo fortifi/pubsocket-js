@@ -1,4 +1,14 @@
-declare type ActionType = '' | 'transfer' | 'attachment.added' | 'connected.agent' | 'attachment' | "ended" | "error" | "agent.typing";
+declare type ActionType =
+  ''
+  | 'transfer'
+  | 'attachment.added'
+  | 'connected.agent'
+  | 'attachment'
+  | "ended"
+  | "error"
+  | "agent.typing"
+  | "multi.answer"
+  | "hc";
 
 declare type Message = {
   time: number;
