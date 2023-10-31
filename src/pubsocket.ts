@@ -201,6 +201,7 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
       case "transfer":
       case "ended":
       case "error":
+      case "customer.ended":
         return true;
     }
     return false;

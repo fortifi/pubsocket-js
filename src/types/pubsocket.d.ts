@@ -8,7 +8,8 @@ declare type ActionType =
   | "error"
   | "agent.typing"
   | "multi.answer"
-  | "hc";
+  | "hc"
+  | "customer.ended";
 
 declare type Message = {
   time: number;
