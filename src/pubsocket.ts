@@ -1,10 +1,34 @@
-import {css, html, LitElement, PropertyValues} from 'lit';
-import {customElement, property} from 'lit/decorators.js';
-import {detectPrng, factory} from "ulid";
-import {unsafeHTML} from 'lit/directives/unsafe-html.js'
-import {checkText} from 'smile2emoji'
+import { css, html, LitElement, PropertyValues } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
+import { detectPrng, factory } from "ulid";
+import { unsafeHTML } from 'lit/directives/unsafe-html.js'
+import { checkText } from 'smile2emoji'
 
 const ulid = factory(detectPrng(true));
+
+declare type ActionType =
+  ''
+  | 'transfer'
+  | 'attachment.added'
+  | 'connected.agent'
+  | 'attachment'
+  | "ended"
+  | "error"
+  | "agent.typing"
+  | "multi.answer"
+  | "hc"
+  | "customer.ended";
+
+declare type Message = {
+  time: number;
+  actionType: ActionType;
+  author: string;
+  content: string;
+  customerInitiated: boolean;
+  meta: { [key: string]: string };
+
+  undelivered: boolean;
+}
 
 @customElement('pub-socket')
 export class PubSocket extends LitElement // eslint-disable-line @typescript-eslint/no-unused-vars
@@ -17,27 +41,27 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
 
   public scrolled: boolean = false;
 
-  @property({attribute: 'new-message', reflect: true, type: Boolean})
+  @property({ attribute: 'new-message', reflect: true, type: Boolean })
   public newMessage: boolean = false;
-  @property({attribute: 'connected', reflect: true, type: Boolean})
+  @property({ attribute: 'connected', reflect: true, type: Boolean })
   public connected: boolean = false;
-  @property({attribute: 'connection-failed', reflect: true, type: Boolean})
+  @property({ attribute: 'connection-failed', reflect: true, type: Boolean })
   public connectionFailed: boolean = false;
 
-  @property({attribute: 'hide-send-panel', type: Boolean})
+  @property({ attribute: 'hide-send-panel', type: Boolean })
   public hideSendPanel: boolean = false;
 
-  @property({attribute: 'retry-delay', type: Number})
+  @property({ attribute: 'retry-delay', type: Number })
   public retryDelay: number = 2;
-  @property({attribute: 'retry-timeout', type: Number})
+  @property({ attribute: 'retry-timeout', type: Number })
   public retryTimeout: number = 5;
 
-  @property({attribute: 'socket-host'})
+  @property({ attribute: 'socket-host' })
   public socketHost: string = 'wss://socket.fortifi.io';
 
-  @property({attribute: 'chat-fid'})
+  @property({ attribute: 'chat-fid' })
   public chatFid: string = '';
-  @property({attribute: 'chat-ref'})
+  @property({ attribute: 'chat-ref' })
   public chatRef: string = '';
 
   public canReply: boolean = true;
@@ -247,7 +271,7 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
       this.canReply = false;
     }
 
-    this.dispatchEvent(new CustomEvent('can.reply', {detail: this.canReply}))
+    this.dispatchEvent(new CustomEvent('can.reply', { detail: this.canReply }))
 
     return html`
       <li ?customer=${false} ?undelivered="${msg.undelivered}" action-type="${msg.actionType}">
@@ -335,7 +359,7 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
       time: (new Date()).getTime(),
       content: message,
       actionType: '',
-      meta: {id: ulid()},
+      meta: { id: ulid() },
       author: '',
       undelivered: true,
       customerInitiated: true
@@ -368,7 +392,7 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
     if (this.scrolled) {
       this.newMessage = true;
     }
-    this.dispatchEvent(new CustomEvent('message', {detail: msg}))
+    this.dispatchEvent(new CustomEvent('message', { detail: msg }))
   }
 
   _scrollFn() {
