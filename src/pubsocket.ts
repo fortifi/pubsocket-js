@@ -1,8 +1,8 @@
-import { css, html, LitElement, PropertyValues } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
-import { detectPrng, factory } from "ulid";
-import { unsafeHTML } from 'lit/directives/unsafe-html.js'
-import { checkText } from 'smile2emoji'
+import {css, html, LitElement, PropertyValues} from 'lit';
+import {customElement, property} from 'lit/decorators.js';
+import {detectPrng, factory} from "ulid";
+import {unsafeHTML} from 'lit/directives/unsafe-html.js'
+import {checkText} from 'smile2emoji'
 
 const ulid = factory(detectPrng(true));
 
@@ -41,30 +41,32 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
 
   public scrolled: boolean = false;
 
-  @property({ attribute: 'new-message', reflect: true, type: Boolean })
+  @property({attribute: 'new-message', reflect: true, type: Boolean})
   public newMessage: boolean = false;
-  @property({ attribute: 'connected', reflect: true, type: Boolean })
+  @property({attribute: 'connected', reflect: true, type: Boolean})
   public connected: boolean = false;
-  @property({ attribute: 'connection-failed', reflect: true, type: Boolean })
+  @property({attribute: 'connection-failed', reflect: true, type: Boolean})
   public connectionFailed: boolean = false;
 
-  @property({ attribute: 'hide-send-panel', type: Boolean })
+  @property({attribute: 'hide-send-panel', type: Boolean})
   public hideSendPanel: boolean = false;
 
-  @property({ attribute: 'retry-delay', type: Number })
+  @property({attribute: 'retry-delay', type: Number})
   public retryDelay: number = 2;
-  @property({ attribute: 'retry-timeout', type: Number })
+  @property({attribute: 'retry-timeout', type: Number})
   public retryTimeout: number = 5;
 
-  @property({ attribute: 'socket-host' })
+  @property({attribute: 'socket-host'})
   public socketHost: string = 'wss://socket.fortifi.io';
 
-  @property({ attribute: 'chat-fid' })
+  @property({attribute: 'chat-fid'})
   public chatFid: string = '';
-  @property({ attribute: 'chat-ref' })
+  @property({attribute: 'chat-ref'})
   public chatRef: string = '';
 
   public canReply: boolean = true;
+
+  protected _retryAttempts: number = 0;
 
   static styles = css`
     :host {
@@ -271,7 +273,7 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
       this.canReply = false;
     }
 
-    this.dispatchEvent(new CustomEvent('can.reply', { detail: this.canReply }))
+    this.dispatchEvent(new CustomEvent('can.reply', {detail: this.canReply}))
 
     return html`
       <li ?customer=${false} ?undelivered="${msg.undelivered}" action-type="${msg.actionType}">
@@ -359,7 +361,7 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
       time: (new Date()).getTime(),
       content: message,
       actionType: '',
-      meta: { id: ulid() },
+      meta: {id: ulid()},
       author: '',
       undelivered: true,
       customerInitiated: true
@@ -392,7 +394,7 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
     if (this.scrolled) {
       this.newMessage = true;
     }
-    this.dispatchEvent(new CustomEvent('message', { detail: msg }))
+    this.dispatchEvent(new CustomEvent('message', {detail: msg}))
   }
 
   _scrollFn() {
@@ -446,6 +448,7 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
       self.connected = true;
       self.connectionFailed = false;
       self._failureTime = 0;
+      self._retryAttempts = 0;
     }
 
     s.onclose = function (e) {
@@ -458,14 +461,14 @@ export class PubSocket extends LitElement // eslint-disable-line @typescript-esl
         if (self._failureTime <= 0) {
           self._failureTime = (new Date()).getTime();
         }
-        // should we retry, or fail?
-        if ((new Date()).getTime() < self._failureTime + (self.retryTimeout * 1000)) {
-          // retry
-          setTimeout(self.open.bind(self), self.retryDelay * 1000);
-        } else {
-          self.connectionFailed = true;
-          s.close(e.code, e.reason);
-        }
+
+        // Keep Retrying with exponential backoff
+        const delay = Math.min(Math.pow(2, self._retryAttempts) * self.retryDelay, 20);
+        console.log('Reconnect in ' + delay + 's');
+        setTimeout(() => {
+          self._retryAttempts++;
+          self.open();
+        }, delay * 1000);
       }
     };
 
